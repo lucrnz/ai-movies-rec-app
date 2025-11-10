@@ -1,0 +1,43 @@
+---
+alwaysApply: true
+---
+
+This project uses the React Compiler for automatic memoization and optimization.
+
+## Key Guidelines:
+
+- **DO NOT use `useMemo`, `useCallback`, or `React.memo`** - The React Compiler handles all memoization automatically
+- Write simple, readable code without manual optimization attempts
+- The compiler will optimize component re-renders and value computations automatically
+- Focus on clean component logic rather than performance primitives
+
+## What This Means:
+
+✅ **Do this:**
+```javascript
+function MyComponent({ items, onSelect }) {
+  const filteredItems = items.filter(item => item.active);
+  
+  const handleClick = (id) => {
+    onSelect(id);
+  };
+  
+  return <List items={filteredItems} onClick={handleClick} />;
+}
+```
+
+❌ **Don't do this:**
+```javascript
+function MyComponent({ items, onSelect }) {
+  const filteredItems = useMemo(
+    () => items.filter(item => item.active),
+    [items]
+  );
+  
+  const handleClick = useCallback((id) => {
+    onSelect(id);
+  }, [onSelect]);
+  
+  return <List items={filteredItems} onClick={handleClick} />;
+}
+```
