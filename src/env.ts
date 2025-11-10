@@ -6,6 +6,7 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
+    TMDB_API_KEY: z.string(),
   },
 
   /**
@@ -22,6 +23,7 @@ export const env = createEnv({
    */
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
+    TMDB_API_KEY: process.env.TMDB_API_KEY,
   },
 
   emptyStringAsUndefined: true,
