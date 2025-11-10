@@ -4,6 +4,14 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   serverExternalPackages: ["@node-rs/argon2"],
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "image.tmdb.org",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

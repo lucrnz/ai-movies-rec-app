@@ -1,8 +1,10 @@
 "use client";
 
-import type { RecommendedMovie } from "@/features/movie-recommendation/agent/schema";
+import type { RecommendedMovie } from "@/features/movie-recommendation/types";
 import { recommendMovies } from "@/features/movie-recommendation/server-function";
 import { useState, useTransition } from "react";
+import Image from "next/image";
+import { TMDB_IMAGE_BASE } from "@/features/movies-api/const";
 
 export function MovieRecommendationsClient() {
   const [results, setResults] = useState<RecommendedMovie[]>([]);
@@ -52,10 +54,24 @@ export function MovieRecommendationsClient() {
           {results.map((result) => (
             <li
               key={result.id}
-              className="border border-gray-300 rounded-md p-4"
+              className="border border-gray-300 rounded-md p-4 flex gap-4"
             >
-              <h3 className="font-display font-semibold">{result.title}</h3>
-              <p>{result.reason}</p>
+              {result.posterUrl && (
+                <Image
+                  decoding="async"
+                  src={`${TMDB_IMAGE_BASE}${result.posterUrl}`}
+                  alt={`${result.title} poster`}
+                  width={500}
+                  height={735}
+                  className="w-[500px] aspect-auto object-cover rounded-md flex-shrink-0"
+                />
+              )}
+              <div className="flex flex-col gap-2">
+                <h3 className="font-display font-semibold">{result.title}</h3>
+                <p>{result.releaseDate}</p>
+                <p>{result.overview}</p>
+                <p>Recommended because: {result.reason}</p>
+              </div>
             </li>
           ))}
         </ul>
