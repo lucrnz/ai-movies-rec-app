@@ -1,6 +1,6 @@
 import type { Movie, MoviePaginatedResponse } from "../types";
 import { env } from "@/env";
-import { Experimental_Agent as Agent, Output, tool } from "ai";
+import { Experimental_Agent as Agent, tool } from "ai";
 import {
   getAILanguageModel,
   AI_MODEL_FOR_TASK,
