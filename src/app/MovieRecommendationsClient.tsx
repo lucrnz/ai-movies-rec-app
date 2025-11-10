@@ -44,10 +44,8 @@ export function MovieRecommendationsClient() {
             />
           </svg>
         )}
-        Search
+        {isPending ? "Searching..." : "Search"}
       </button>
-
-      {isPending && <p>Loading...</p>}
 
       {results.length > 0 && (
         <ul className="list-none flex flex-col gap-4">
