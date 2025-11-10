@@ -1,11 +1,13 @@
 "use server";
 
+import type { AgentResultItem } from "./agent/schema";
 import { buildMovieRecommendationAgent } from "./agent/movie-rec-agent";
 import { clone } from "@es-toolkit/es-toolkit";
-import { RecommendedMovie } from "./agent/schema";
+import { fetchMovieDetails } from "../movies-api/fetch-movie-details";
+import { RecommendedMovie } from "./types";
 
 export const recommendMovies = async (movieCriteria: string) => {
-  const resultPromise = new Promise<RecommendedMovie[]>(async (resolve) => {
+  const resultPromise = new Promise<AgentResultItem[]>(async (resolve) => {
     const { agent } = buildMovieRecommendationAgent({
       recommendedMoviesTotalTarget: 5,
       onResult: (result) => {
@@ -18,5 +20,29 @@ export const recommendMovies = async (movieCriteria: string) => {
     });
   });
 
-  return await resultPromise;
+  const results = await resultPromise;
+
+  // Fetch poster URLs for all movies in parallel
+  const resultsWithDetails = (
+    await Promise.all(
+      results.map(async (movie) => {
+        const movieDetails = await fetchMovieDetails(movie.id);
+
+        if (!movieDetails) {
+          return null;
+        }
+
+        const item: RecommendedMovie = {
+          ...movie,
+          posterUrl: movieDetails.poster_path ?? null,
+          overview: movieDetails.overview ?? null,
+          releaseDate: movieDetails.release_date ?? null,
+        };
+
+        return item;
+      }),
+    )
+  ).filter((x) => x !== null);
+
+  return resultsWithDetails;
 };

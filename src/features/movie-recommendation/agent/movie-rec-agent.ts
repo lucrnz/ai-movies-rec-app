@@ -1,5 +1,3 @@
-import type { Movie, MoviePaginatedResponse } from "../types";
-import { env } from "@/env";
 import { Experimental_Agent as Agent, tool } from "ai";
 import {
   getAILanguageModel,
@@ -7,11 +5,13 @@ import {
 } from "@/features/ai/pick-model";
 import z from "zod";
 import { generateText } from "ai-sdk-ollama";
-import { RecommendedMovie, recommendedMovieSchema } from "./schema";
+import { Movie } from "@/features/movies-api/types";
+import { searchMovies } from "@/features/movies-api/search";
+import { agentResultItemSchema, type AgentResultItem } from "./schema";
 
 type AgentBuildOptions = {
   recommendedMoviesTotalTarget?: number;
-  onResult: (result: RecommendedMovie[]) => void;
+  onResult: (result: AgentResultItem[]) => void;
 };
 
 export const buildMovieRecommendationAgent = ({
@@ -47,28 +47,15 @@ export const buildMovieRecommendationAgent = ({
         };
       }
 
-      const res = await fetch(
-        `https://api.themoviedb.org/3/search/movie?${new URLSearchParams({
-          query,
-          page: page.toString(),
-        })}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${env.TMDB_API_KEY}`,
-          },
-        },
-      );
-
-      const data: MoviePaginatedResponse = await res.json();
-
-      const results: Partial<Movie>[] = (data.results?.slice(0, 10) ?? []).map(
-        (m: Movie) => ({
+      const results: Partial<Movie>[] = (
+        await searchMovies(query, page)
+      ).results
+        .slice(0, 10)
+        .map((m: Movie) => ({
           id: m.id,
           title: m.title,
           overview: m.overview,
-        }),
-      );
+        }));
 
       console.log("[tool] [searchMovies] results", results);
 
@@ -138,7 +125,7 @@ export const buildMovieRecommendationAgent = ({
     description: "Pick the final answer from the agent",
     inputSchema: z.object({
       answer: z
-        .array(recommendedMovieSchema)
+        .array(agentResultItemSchema)
         .min(
           recommendedMoviesTotalTarget,
           `You must set an array of at least ${recommendedMoviesTotalTarget} movies`,

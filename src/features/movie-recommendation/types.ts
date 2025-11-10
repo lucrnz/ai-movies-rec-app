@@ -1,14 +1,8 @@
-export type Movie = {
+export type RecommendedMovie = {
   id: number;
   title: string;
-  overview: string;
-  release_date: string;
-  poster_path: string;
-};
-
-export type MoviePaginatedResponse = {
-  page: number;
-  total_pages: number;
-  total_results: number;
-  results: Movie[];
+  reason: string;
+  posterUrl: string | null;
+  overview: string | null;
+  releaseDate: string | null;
 };
