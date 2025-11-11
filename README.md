@@ -2,6 +2,11 @@
 
 An AI-powered movie recommendation application that uses a multi-agent system to provide personalized movie suggestions based on natural language criteria. The application integrates with The Movie Database (TMDB) API and supports multiple AI providers for flexible deployment.
 
+## Demo
+🚀 You can just try out the app for yourself!
+
+<https://demo.lucdev.net/ai-movies-rec>
+
 ## Features
 
 - **AI-Powered Recommendations**: Multi-agent system that consults recommendation models and searches TMDB for matching movies
