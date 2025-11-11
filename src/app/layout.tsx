@@ -20,9 +20,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className="font-body tracking-wide antialiased relative h-screen w-screen"
+      className="font-body tracking-wide antialiased relative h-screen w-screen overflow-x-hidden"
     >
-      <body className="h-full w-full">{children}</body>
+      <body className="h-full w-full relative p-2 md:p-4">{children}</body>
     </html>
   );
 }

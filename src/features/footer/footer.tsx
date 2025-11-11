@@ -7,7 +7,8 @@ import clsx from "clsx";
 
 export const FOOTER_POSITIONS = {
   DEFAULT: "default",
-  BOTTOM_FORCED: "bottom-forced",
+  BOTTOM_STICKY: "bottom-sticky",
+  BOTTOM_ABSOLUTE: "bottom-absolute",
 } as const;
 
 export type FooterPosition =
@@ -21,8 +22,9 @@ export function Footer({
   return (
     <footer
       className={clsx(
-        "rounded-md bg-neutral-700 text-neutral-100 p-4 w-full flex flex-col items-center justify-center",
-        position === FOOTER_POSITIONS.BOTTOM_FORCED && "absolute bottom-0",
+        "rounded-md bg-neutral-700 text-neutral-100 p-4 w-full flex flex-col items-center justify-center h-12",
+        position === FOOTER_POSITIONS.BOTTOM_STICKY && "sticky bottom-0",
+        position === FOOTER_POSITIONS.BOTTOM_ABSOLUTE && "absolute bottom-0",
       )}
     >
       <div className="flex flex-row items-center justify-center gap-2">
