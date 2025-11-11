@@ -9,36 +9,52 @@ import { Movie } from "@/features/movies-api/types";
 import { searchMovies } from "@/features/movies-api/search";
 import { agentResultItemSchema, type AgentResultItem } from "./schema";
 
+export const AGENT_EVENT = {
+  TOOL_CALLED: "tool_called",
+  TOOL_RESULT: "tool_result",
+  AGENT_RESULT: "agent_result",
+} as const;
+
+export const AGENT_TOOL_NAME = {
+  SEARCH_MOVIES: "searchMovies",
+  CONSULT_MOVIE_RECOMMENDATIONS: "consultMovieRecommendations",
+  PICK_FINAL_ANSWER: "pickFinalAnswer",
+} as const;
+
+export type ToolName = (typeof AGENT_TOOL_NAME)[keyof typeof AGENT_TOOL_NAME];
+
+export type AgentEvent = (typeof AGENT_EVENT)[keyof typeof AGENT_EVENT];
+
 type AgentBuildOptions = {
   recommendedMoviesTotalTarget?: number;
-  onResult: (result: AgentResultItem[]) => void;
+  eventHandler: {
+    [AGENT_EVENT.TOOL_CALLED]: (
+      toolName: ToolName,
+      params: Record<string, string>,
+    ) => void;
+    [AGENT_EVENT.TOOL_RESULT]: (toolName: ToolName, result: unknown) => void;
+    [AGENT_EVENT.AGENT_RESULT]: (result: AgentResultItem[]) => void;
+  };
 };
 
 export const buildMovieRecommendationAgent = ({
   recommendedMoviesTotalTarget = 10,
-  onResult,
+  eventHandler,
 }: AgentBuildOptions) => {
-  const TOOL_NAMES = {
-    SEARCH_MOVIES: "searchMovies",
-    CONSULT_MOVIE_RECOMMENDATIONS: "consultMovieRecommendations",
-    PICK_FINAL_ANSWER: "pickFinalAnswer",
-  } as const;
-
   const maxSearchAllowed = Math.floor(recommendedMoviesTotalTarget * 1.5);
 
   const searchMoviesTool = tool({
-    name: TOOL_NAMES.SEARCH_MOVIES,
+    name: AGENT_TOOL_NAME.SEARCH_MOVIES,
     description: `Search TMDB for movies based on a text query. You can only search for movies ${maxSearchAllowed} times.`,
     inputSchema: z.object({
       query: z.string().describe("Query to search for"),
       page: z.number().describe("Page number to fetch").default(1),
     }),
     execute: async ({ query, page }) => {
-      console.log("[agent] [tool] searching movies");
-      toolsCalled.push(TOOL_NAMES.SEARCH_MOVIES);
+      toolsCalled.push(AGENT_TOOL_NAME.SEARCH_MOVIES);
 
       if (
-        toolsCalled.filter((x) => x === TOOL_NAMES.SEARCH_MOVIES).length >=
+        toolsCalled.filter((x) => x === AGENT_TOOL_NAME.SEARCH_MOVIES).length >=
         maxSearchAllowed
       ) {
         return {
@@ -46,6 +62,11 @@ export const buildMovieRecommendationAgent = ({
           message: `You can only search for movies ${maxSearchAllowed} times.`,
         };
       }
+
+      eventHandler[AGENT_EVENT.TOOL_CALLED](AGENT_TOOL_NAME.SEARCH_MOVIES, {
+        query,
+        page: page.toString(),
+      });
 
       const results: Partial<Movie>[] = (
         await searchMovies(query, page)
@@ -57,9 +78,9 @@ export const buildMovieRecommendationAgent = ({
           overview: m.overview,
         }));
 
-      console.log(
-        `[agent] [tool] finished searching movies, found ${results.length} results`,
-      );
+      eventHandler[AGENT_EVENT.TOOL_RESULT](AGENT_TOOL_NAME.SEARCH_MOVIES, {
+        results,
+      });
 
       return {
         success: true,
@@ -71,7 +92,7 @@ export const buildMovieRecommendationAgent = ({
   const toolsCalled: string[] = [];
 
   const consultMovieRecommendationsTool = tool({
-    name: TOOL_NAMES.CONSULT_MOVIE_RECOMMENDATIONS,
+    name: AGENT_TOOL_NAME.CONSULT_MOVIE_RECOMMENDATIONS,
     description:
       "Consult movie recommendations based on the user-provided movie criteria.",
     inputSchema: z.object({
@@ -83,18 +104,23 @@ export const buildMovieRecommendationAgent = ({
         .min(10, "Movie criteria should be at least 10 characters"),
     }),
     execute: async ({ movieCriteria }) => {
-      console.log("[agent] [tool] consulting movie recommendations");
-
-      if (toolsCalled.includes(TOOL_NAMES.CONSULT_MOVIE_RECOMMENDATIONS)) {
+      if (toolsCalled.includes(AGENT_TOOL_NAME.CONSULT_MOVIE_RECOMMENDATIONS)) {
         return {
           success: false,
           message: "You can only consult movie recommendations once.",
         };
       }
 
-      toolsCalled.push(TOOL_NAMES.CONSULT_MOVIE_RECOMMENDATIONS);
+      eventHandler[AGENT_EVENT.TOOL_CALLED](
+        AGENT_TOOL_NAME.CONSULT_MOVIE_RECOMMENDATIONS,
+        {
+          movieCriteria,
+        },
+      );
 
-      const { text } = await generateText({
+      toolsCalled.push(AGENT_TOOL_NAME.CONSULT_MOVIE_RECOMMENDATIONS);
+
+      const { text: recommendationText } = await generateText({
         model: getAILanguageModel(AI_MODEL_FOR_TASK.RECOMMENDER),
         messages: [
           {
@@ -114,17 +140,22 @@ export const buildMovieRecommendationAgent = ({
         ],
       });
 
-      console.log("[agent] [tool] finished consulting movie recommendations");
+      eventHandler[AGENT_EVENT.TOOL_RESULT](
+        AGENT_TOOL_NAME.CONSULT_MOVIE_RECOMMENDATIONS,
+        {
+          recommendationText,
+        },
+      );
 
       return {
         success: true,
-        message: text,
+        message: recommendationText,
       };
     },
   });
 
   const pickFinalAnswerTool = tool({
-    name: TOOL_NAMES.PICK_FINAL_ANSWER,
+    name: AGENT_TOOL_NAME.PICK_FINAL_ANSWER,
     description: "Pick the final answer from the agent",
     inputSchema: z.object({
       answer: z
@@ -135,18 +166,36 @@ export const buildMovieRecommendationAgent = ({
         ),
     }),
     execute: async ({ answer }) => {
-      console.log("[agent] [tool] picking final answer", answer);
-
-      if (toolsCalled.includes(TOOL_NAMES.PICK_FINAL_ANSWER)) {
+      if (toolsCalled.includes(AGENT_TOOL_NAME.PICK_FINAL_ANSWER)) {
         return {
           success: false,
           message: "You can only pick the final answer once.",
         };
       }
 
-      toolsCalled.push(TOOL_NAMES.PICK_FINAL_ANSWER);
+      if (
+        !toolsCalled.includes(AGENT_TOOL_NAME.CONSULT_MOVIE_RECOMMENDATIONS)
+      ) {
+        return {
+          success: false,
+          message:
+            "You must consult movie recommendations before picking the final answer.",
+        };
+      }
 
-      onResult(answer);
+      if (
+        toolsCalled.filter((x) => x === AGENT_TOOL_NAME.SEARCH_MOVIES).length <
+        recommendedMoviesTotalTarget
+      ) {
+        return {
+          success: false,
+          message: `You must search for at least ${recommendedMoviesTotalTarget} different movies before picking the final answer.`,
+        };
+      }
+
+      toolsCalled.push(AGENT_TOOL_NAME.PICK_FINAL_ANSWER);
+
+      eventHandler[AGENT_EVENT.AGENT_RESULT](answer);
 
       return {
         success: true,
@@ -174,27 +223,7 @@ export const buildMovieRecommendationAgent = ({
       pickFinalAnswer: pickFinalAnswerTool,
     },
     toolChoice: "required",
-    stopWhen: [
-      () => {
-        const hasPickedFinalAnswer = toolsCalled.includes(
-          TOOL_NAMES.PICK_FINAL_ANSWER,
-        );
-
-        const hasConsultedMovieRecommendations = toolsCalled.includes(
-          TOOL_NAMES.CONSULT_MOVIE_RECOMMENDATIONS,
-        );
-
-        const searchesUsed = toolsCalled.filter(
-          (x) => x === TOOL_NAMES.SEARCH_MOVIES,
-        ).length;
-
-        return (
-          hasPickedFinalAnswer &&
-          hasConsultedMovieRecommendations &&
-          searchesUsed >= recommendedMoviesTotalTarget
-        );
-      },
-    ],
+    stopWhen: [() => toolsCalled.includes(AGENT_TOOL_NAME.PICK_FINAL_ANSWER)],
   });
 
   return agent;

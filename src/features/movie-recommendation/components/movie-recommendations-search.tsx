@@ -13,7 +13,7 @@ const EXAMPLE_QUERIES = [
 ];
 
 export const MovieRecommendationsSearch = () => {
-  const { isPending, results, provideRecommendations } =
+  const { isPending, results, progressMessage, provideRecommendations } =
     useMovieRecommendations();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -66,6 +66,12 @@ export const MovieRecommendationsSearch = () => {
           {isPending ? "Searching..." : "Search"}
         </button>
       </div>
+
+      {isPending && progressMessage && (
+        <div className="text-sm text-gray-600 animate-pulse">
+          {progressMessage}
+        </div>
+      )}
 
       {!isPending && results.length === 0 && (
         <div className="flex flex-row gap-4">

@@ -1,4 +1,4 @@
-import { RecommendedMovie } from "../server-function";
+import { RecommendedMovie } from "../context";
 
 export const mockMovies: RecommendedMovie[] = [
   {
