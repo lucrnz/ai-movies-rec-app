@@ -9,7 +9,7 @@ import { useMovieRecommendations } from "@/features/movie-recommendation/context
 export const LandingFooterRender = () => {
   const { results } = useMovieRecommendations();
   return results.length > 0 ? (
-    <Footer />
+    <Footer className="mt-8" />
   ) : (
     <Footer position={FOOTER_POSITIONS.BOTTOM_ABSOLUTE} />
   );

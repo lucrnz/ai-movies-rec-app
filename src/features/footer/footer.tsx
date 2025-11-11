@@ -16,9 +16,11 @@ export type FooterPosition =
   (typeof FOOTER_POSITIONS)[keyof typeof FOOTER_POSITIONS];
 
 export function Footer({
+  className,
   position = FOOTER_POSITIONS.DEFAULT,
 }: {
   position?: FooterPosition;
+  className?: string;
 }) {
   return (
     <footer
@@ -26,6 +28,7 @@ export function Footer({
         "rounded-md dark:bg-slate-800 dark:text-neutral-100 bg-neutral-100 text-slate-800 p-4 w-full flex flex-col items-center justify-center h-12",
         position === FOOTER_POSITIONS.BOTTOM_STICKY && "sticky bottom-0",
         position === FOOTER_POSITIONS.BOTTOM_ABSOLUTE && "absolute bottom-0",
+        className,
       )}
     >
       <div className="flex flex-row items-center justify-center gap-2">
