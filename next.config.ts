@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  basePath: "/ai-movies-rec",
   serverExternalPackages: ["@node-rs/argon2"],
   images: {
     remotePatterns: [

@@ -14,7 +14,9 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000/ai-movies-rec](http://localhost:3000/ai-movies-rec) with your browser to see the result.
+
+This app is configured to run under the base path `/ai-movies-rec` for deployment flexibility.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

@@ -3,7 +3,7 @@ import {
   MovieRecommendationsResults,
 } from "@/features/movie-recommendation/components";
 import { MovieRecommendationsProvider } from "@/features/movie-recommendation/context";
-import { LandingFooterRender } from "./landing-footer-render";
+import { LandingFooterRender } from "../features/landing/landing-footer-render";
 
 export default function Home() {
   return (

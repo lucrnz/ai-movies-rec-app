@@ -27,7 +27,18 @@ export const env = createEnv({
    */
   clientPrefix: "NEXT_PUBLIC_",
 
-  client: {},
+  client: {
+    NEXT_PUBLIC_BASE_PATH: z
+      .string()
+      .optional()
+      .default("/ai-movies-rec/")
+      .refine((v) => v.endsWith("/"), {
+        message: "NEXT_PUBLIC_BASE_PATH must end with a slash",
+      })
+      .refine((v) => v.startsWith("/"), {
+        message: "NEXT_PUBLIC_BASE_PATH must start with a slash",
+      }),
+  },
 
   /**
    * What object holds the environment variables at runtime. This is usually
@@ -47,6 +58,7 @@ export const env = createEnv({
     OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
     OPENROUTER_MODEL_AGENT: process.env.OPENROUTER_MODEL_AGENT,
     OPENROUTER_MODEL_RECOMMENDER: process.env.OPENROUTER_MODEL_RECOMMENDER,
+    NEXT_PUBLIC_BASE_PATH: process.env.NEXT_PUBLIC_BASE_PATH,
   },
 
   emptyStringAsUndefined: true,
