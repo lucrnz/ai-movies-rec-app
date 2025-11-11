@@ -17,6 +17,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@ai-sdk/xai": "^2.0.32",
     "@es-toolkit/es-toolkit": "jsr:1.41.0-dev.1665+175c8f53",
     "@fontsource-variable/cabin": "^5.2.8",
     "@fontsource-variable/exo-2": "^5.2.8",

@@ -7,6 +7,12 @@ export const env = createEnv({
       .enum(["development", "production", "test"])
       .default("development"),
     TMDB_API_KEY: z.string(),
+    AI_MODEL_PROVIDER: z
+      .enum(["openrouter", "xai", "ollama"])
+      .default("ollama"),
+    XAI_API_KEY: z.string().optional(),
+    XAI_MODEL_AGENT: z.string().default("grok-4-fast-non-reasoning"),
+    XAI_MODEL_RECOMMENDER: z.string().default("grok-4"),
     OPENROUTER_API_KEY: z.string().optional(),
     OPENROUTER_MODEL_AGENT: z.string().default("openai/gpt-5-nano"),
     OPENROUTER_MODEL_RECOMMENDER: z.string().default("openai/gpt-oss-120b"),
@@ -30,6 +36,10 @@ export const env = createEnv({
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
     TMDB_API_KEY: process.env.TMDB_API_KEY,
+    AI_MODEL_PROVIDER: process.env.AI_MODEL_PROVIDER,
+    XAI_API_KEY: process.env.XAI_API_KEY,
+    XAI_MODEL_AGENT: process.env.XAI_MODEL_AGENT,
+    XAI_MODEL_RECOMMENDER: process.env.XAI_MODEL_RECOMMENDER,
     OLLAMA_URL: process.env.OLLAMA_URL,
     OLLAMA_MODEL: process.env.OLLAMA_MODEL,
     OLLAMA_MODEL_AGENT: process.env.OLLAMA_MODEL_AGENT,
