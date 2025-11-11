@@ -1,4 +1,4 @@
-import { RecommendedMovie } from "../context";
+import type { RecommendedMovie } from "@/features/movie-recommendation/schemas/sse-events";
 
 export const mockMovies: RecommendedMovie[] = [
   {
