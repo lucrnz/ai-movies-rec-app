@@ -68,18 +68,18 @@ export const MovieRecommendationsSearch = () => {
       </div>
 
       {isPending && progressMessage && (
-        <div className="text-sm text-gray-600 animate-pulse">
+        <div className="text-sm text-neutral-700 dark:text-neutral-300 animate-pulse">
           {progressMessage}
         </div>
       )}
 
       {!isPending && results.length === 0 && (
-        <div className="flex flex-row gap-4">
+        <div className="flex flex-col lg:flex-row gap-4">
           {EXAMPLE_QUERIES.map((query) => (
             <button
               type="button"
               key={query}
-              className="btn btn-outline text-sm font-normal"
+              className="btn btn-outline text-sm font-normal opacity-75 hover:opacity-100"
               onClick={() => handleSelectExampleQuery(query)}
             >
               {query}

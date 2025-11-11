@@ -4,6 +4,7 @@ import {
   SITE_GITHUB_URL,
 } from "@/features/site-consts";
 import clsx from "clsx";
+import { CoffeeIcon } from "lucide-react";
 
 export const FOOTER_POSITIONS = {
   DEFAULT: "default",
@@ -17,28 +18,26 @@ export type FooterPosition =
 export function Footer({
   position = FOOTER_POSITIONS.DEFAULT,
 }: {
-  position: FooterPosition;
+  position?: FooterPosition;
 }) {
   return (
     <footer
       className={clsx(
-        "rounded-md bg-neutral-700 text-neutral-100 p-4 w-full flex flex-col items-center justify-center h-12",
+        "rounded-md dark:bg-slate-800 dark:text-neutral-100 bg-neutral-100 text-slate-800 p-4 w-full flex flex-col items-center justify-center h-12",
         position === FOOTER_POSITIONS.BOTTOM_STICKY && "sticky bottom-0",
         position === FOOTER_POSITIONS.BOTTOM_ABSOLUTE && "absolute bottom-0",
       )}
     >
       <div className="flex flex-row items-center justify-center gap-2">
-        <p>
-          Created with ☕ by{" "}
-          <a
-            href={SITE_AUTHOR_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sky-200 hover:underline"
-          >
-            {SITE_AUTHOR}
-          </a>
-        </p>
+        Created with <CoffeeIcon /> by
+        <a
+          href={SITE_AUTHOR_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="dark:text-sky-200 text-sky-700 hover:underline"
+        >
+          {SITE_AUTHOR}
+        </a>
         <a href={SITE_GITHUB_URL} target="_blank" rel="noopener noreferrer">
           <svg
             xmlns="http://www.w3.org/2000/svg"

@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <MovieRecommendationsProvider>
       <div className="flex flex-col items-center justify-center min-h-24">
-        <h1 className="text-2xl md:text-4xl font-display font-semibold mb-4 text-transparent bg-clip-text bg-linear-to-r from-sky-400 to-rose-700 dark:from-sky-300 dark:to-rose-400">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-semibold mb-4 text-transparent bg-clip-text bg-linear-to-r from-sky-400 to-rose-700 dark:from-sky-300 dark:to-rose-400">
           Movie Recommendations App
         </h1>
         <p className="text-lg font-body mb-4">
