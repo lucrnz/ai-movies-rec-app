@@ -100,11 +100,13 @@ export const buildMovieRecommendationAgent = ({
         messages: [
           {
             role: "system",
-            content: `You are a movie recommendation export. You should help the user find movies that match the given criteria.
-            You should recommend ${recommendedMoviesTotalTarget} movies.
-            You should always give a reason why you are recommending the movie.
-            You never recommend the same movie twice.
-            Be brief and to the point. Do not ask follow up questions.`,
+            content: [
+              "You are a movie recommendation export. You should help the user find movies that match the given criteria.",
+              `You should recommend ${recommendedMoviesTotalTarget} movies.`,
+              "You should always give a reason why you are recommending the movie.",
+              "You never recommend the same movie twice.",
+              "Be brief and to the point. Do not use markdown formatting or tables. Do not ask follow up questions.",
+            ].join("\n"),
           },
           {
             role: "user",

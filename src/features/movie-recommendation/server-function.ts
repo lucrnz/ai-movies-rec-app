@@ -1,10 +1,10 @@
 "use server";
 
-import type { AgentResultItem } from "./agent/schema";
-import { buildMovieRecommendationAgent } from "./agent/movie-rec-agent";
+import type { RecommendedMovie } from "./types";
+import type { AgentResultItem } from "./agent";
+import { buildMovieRecommendationAgent } from "./agent";
 import { clone } from "@es-toolkit/es-toolkit";
 import { fetchMovieDetails } from "../movies-api/fetch-movie-details";
-import { RecommendedMovie } from "./types";
 
 export const recommendMovies = async (movieCriteria: string) => {
   const resultPromise = new Promise<AgentResultItem[]>(async (resolve) => {
