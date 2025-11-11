@@ -41,11 +41,26 @@ export const buildMovieRecommendationAgent = ({
   recommendedMoviesTotalTarget = 10,
   eventHandler,
 }: AgentBuildOptions) => {
-  const maxSearchAllowed = Math.floor(recommendedMoviesTotalTarget * 1.5);
+  /**
+   * The maximum number of times the search agent can be used.
+   */
+  const MAX_SEARCHES_ALLOWED = Math.floor(recommendedMoviesTotalTarget * 1.7);
+
+  /**
+   * The maximum number of times the recommendation agent can be consulted.
+   */
+  const MAX_CONSULTATIONS_ALLOWED = 2;
+
+  /**
+   * The number of movies that the recommendation agent will recommend.
+   */
+  const RECOMENDATION_AGENT_MOVIES_COUNT = Math.floor(
+    recommendedMoviesTotalTarget * 1.7,
+  );
 
   const searchMoviesTool = tool({
     name: AGENT_TOOL_NAME.SEARCH_MOVIES,
-    description: `Search TMDB for movies based on a text query. You can only search for movies ${maxSearchAllowed} times.`,
+    description: `Search TMDB for movies based on a text query. You can only search for movies ${MAX_SEARCHES_ALLOWED} times.`,
     inputSchema: z.object({
       query: z.string().describe("Query to search for"),
       page: z.number().describe("Page number to fetch").default(1),
@@ -55,11 +70,11 @@ export const buildMovieRecommendationAgent = ({
 
       if (
         toolsCalled.filter((x) => x === AGENT_TOOL_NAME.SEARCH_MOVIES).length >=
-        maxSearchAllowed
+        MAX_SEARCHES_ALLOWED
       ) {
         return {
           success: false,
-          message: `You can only search for movies ${maxSearchAllowed} times.`,
+          message: `You can only search for movies ${MAX_SEARCHES_ALLOWED} times.`,
         };
       }
 
@@ -94,7 +109,7 @@ export const buildMovieRecommendationAgent = ({
   const consultMovieRecommendationsTool = tool({
     name: AGENT_TOOL_NAME.CONSULT_MOVIE_RECOMMENDATIONS,
     description:
-      "Consult movie recommendations based on the user-provided movie criteria.",
+      "Consult movie recommendations based on natural language movie criteria.",
     inputSchema: z.object({
       movieCriteria: z
         .string()
@@ -104,10 +119,14 @@ export const buildMovieRecommendationAgent = ({
         .min(10, "Movie criteria should be at least 10 characters"),
     }),
     execute: async ({ movieCriteria }) => {
-      if (toolsCalled.includes(AGENT_TOOL_NAME.CONSULT_MOVIE_RECOMMENDATIONS)) {
+      if (
+        toolsCalled.filter(
+          (x) => x === AGENT_TOOL_NAME.CONSULT_MOVIE_RECOMMENDATIONS,
+        ).length >= MAX_CONSULTATIONS_ALLOWED
+      ) {
         return {
           success: false,
-          message: "You can only consult movie recommendations once.",
+          message: `You can only consult movie recommendations ${MAX_CONSULTATIONS_ALLOWED} times.`,
         };
       }
 
@@ -127,7 +146,7 @@ export const buildMovieRecommendationAgent = ({
             role: "system",
             content: [
               "You are a movie recommendation export. You should help the user find movies that match the given criteria.",
-              `You should recommend ${recommendedMoviesTotalTarget} movies.`,
+              `You should recommend ${RECOMENDATION_AGENT_MOVIES_COUNT} movies.`,
               "You should always give a reason why you are recommending the movie.",
               "You never recommend the same movie twice.",
               "Be brief and to the point. Do not use markdown formatting or tables. Do not ask follow up questions.",
@@ -163,6 +182,16 @@ export const buildMovieRecommendationAgent = ({
         .min(
           recommendedMoviesTotalTarget,
           `You must set an array of at least ${recommendedMoviesTotalTarget} movies`,
+        )
+        .refine(
+          (answer) =>
+            new Set(answer.map((x) => x.id)).size === answer.length &&
+            new Set(answer.map((x) => x.title.trim().toLowerCase())).size ===
+              answer.length,
+          {
+            message:
+              "You must set an array of unique movies. You cannot recommend the same movie twice.",
+          },
         ),
     }),
     execute: async ({ answer }) => {
