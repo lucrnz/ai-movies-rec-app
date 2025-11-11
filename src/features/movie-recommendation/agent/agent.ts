@@ -34,7 +34,7 @@ export const buildMovieRecommendationAgent = ({
       page: z.number().describe("Page number to fetch").default(1),
     }),
     execute: async ({ query, page }) => {
-      console.log("[tool] searching movies", query, page);
+      console.log("[agent] [tool] searching movies");
       toolsCalled.push(TOOL_NAMES.SEARCH_MOVIES);
 
       if (
@@ -57,7 +57,9 @@ export const buildMovieRecommendationAgent = ({
           overview: m.overview,
         }));
 
-      console.log("[tool] [searchMovies] results", results);
+      console.log(
+        `[agent] [tool] finished searching movies, found ${results.length} results`,
+      );
 
       return {
         success: true,
@@ -81,10 +83,7 @@ export const buildMovieRecommendationAgent = ({
         .min(10, "Movie criteria should be at least 10 characters"),
     }),
     execute: async ({ movieCriteria }) => {
-      console.log(
-        "[agent] [tool] consulting movie recommendations",
-        movieCriteria,
-      );
+      console.log("[agent] [tool] consulting movie recommendations");
 
       if (toolsCalled.includes(TOOL_NAMES.CONSULT_MOVIE_RECOMMENDATIONS)) {
         return {
@@ -114,7 +113,9 @@ export const buildMovieRecommendationAgent = ({
           },
         ],
       });
-      console.log("[agent] [tool] movie recommendations", text);
+
+      console.log("[agent] [tool] finished consulting movie recommendations");
+
       return {
         success: true,
         message: text,
@@ -179,25 +180,13 @@ export const buildMovieRecommendationAgent = ({
           TOOL_NAMES.PICK_FINAL_ANSWER,
         );
 
-        console.log(
-          "[agent] [stopWhen] hasPickedFinalAnswer",
-          hasPickedFinalAnswer,
-        );
-
         const hasConsultedMovieRecommendations = toolsCalled.includes(
           TOOL_NAMES.CONSULT_MOVIE_RECOMMENDATIONS,
-        );
-
-        console.log(
-          "[agent] [stopWhen] hasConsultedMovieRecommendations",
-          hasConsultedMovieRecommendations,
         );
 
         const searchesUsed = toolsCalled.filter(
           (x) => x === TOOL_NAMES.SEARCH_MOVIES,
         ).length;
-
-        console.log("[agent] [stopWhen] searchedMovies", searchesUsed);
 
         return (
           hasPickedFinalAnswer &&
@@ -208,7 +197,5 @@ export const buildMovieRecommendationAgent = ({
     ],
   });
 
-  return {
-    agent,
-  };
+  return agent;
 };
