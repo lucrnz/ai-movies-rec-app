@@ -60,12 +60,16 @@ export const buildMovieRecommendationAgent = ({
 
   const searchMoviesTool = tool({
     name: AGENT_TOOL_NAME.SEARCH_MOVIES,
-    description: `Search TMDB for movies based on a text query. You can only search for movies ${MAX_SEARCHES_ALLOWED} times.`,
+    description: `Search TMDB for movies based on the movie title. You can only search for movies ${MAX_SEARCHES_ALLOWED} times.`,
     inputSchema: z.object({
-      query: z.string().describe("Query to search for"),
+      movieTitle: z
+        .string()
+        .describe(
+          "Movie title to search for - Do not include any other keywords such as 'movie', 'film', or the year of the movie.",
+        ),
       page: z.number().describe("Page number to fetch").default(1),
     }),
-    execute: async ({ query, page }) => {
+    execute: async ({ movieTitle, page }) => {
       toolsCalled.push(AGENT_TOOL_NAME.SEARCH_MOVIES);
 
       if (
@@ -79,12 +83,12 @@ export const buildMovieRecommendationAgent = ({
       }
 
       eventHandler[AGENT_EVENT.TOOL_CALLED](AGENT_TOOL_NAME.SEARCH_MOVIES, {
-        query,
+        movieTitle,
         page: page.toString(),
       });
 
       const results: Partial<Movie>[] = (
-        await searchMovies(query, page)
+        await searchMovies(movieTitle, page)
       ).results
         .slice(0, 10)
         .map((m: Movie) => ({
@@ -238,7 +242,7 @@ export const buildMovieRecommendationAgent = ({
     "You are given a movie criteria and you need to recommend movies that match that criteria.",
     "Instructions:",
     "1. Use the consultMovieRecommendations tool to get recommendations based on the user-provided movie criteria.",
-    "2. Use the searchMovies tool to find the movies that match the recommendations, by using the title of the movie.",
+    "2. Use the searchMovies tool to find the movies that match the recommendations, by using the title of the movie - When performing a search Do not include any other keywords such as 'movie', 'film', or the year of the movie.",
     "Final answer:",
     `You must return an array of ${recommendedMoviesTotalTarget} movies, each should include it's title, the movie id (exact match), and a reason for recommending the movie.`,
   ].join("\n");

@@ -130,11 +130,11 @@ export async function GET(request: NextRequest) {
                       });
                       break;
                     case AGENT_TOOL_NAME.SEARCH_MOVIES:
-                      const movieName = params.query;
-                      lastSearchMovieTitle = movieName;
+                      const { movieTitle } = params as { movieTitle: string };
+                      lastSearchMovieTitle = movieTitle;
                       send({
                         type: "progress",
-                        message: `Searching for "${movieName}"...`,
+                        message: `Searching for "${movieTitle}"...`,
                       });
                       break;
                     default:
