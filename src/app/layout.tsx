@@ -3,6 +3,7 @@ import "@/features/ui/theme/globals.css";
 import "@fontsource-variable/exo-2";
 import "@fontsource-variable/cabin";
 import { SITE_NAME, SITE_DESCRIPTION } from "@/features/site-consts";
+import { env } from "@/env";
 
 export const metadata: Metadata = {
   title: {
@@ -10,6 +11,9 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
+  icons: {
+    icon: `${env.NEXT_PUBLIC_BASE_PATH}/assets/favicon.svg`,
+  },
 };
 
 export default function RootLayout({
