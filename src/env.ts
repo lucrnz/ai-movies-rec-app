@@ -6,6 +6,7 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
+    TURNSTILE_SECRET_KEY: z.string().optional(),
     TMDB_API_KEY: z.string(),
     AI_MODEL_PROVIDER: z
       .enum(["openrouter", "xai", "ollama"])
@@ -38,6 +39,7 @@ export const env = createEnv({
       .refine((v) => v.startsWith("/"), {
         message: "NEXT_PUBLIC_BASE_PATH must start with a slash",
       }),
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional(),
   },
 
   /**
@@ -46,6 +48,7 @@ export const env = createEnv({
    */
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
+    TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
     TMDB_API_KEY: process.env.TMDB_API_KEY,
     AI_MODEL_PROVIDER: process.env.AI_MODEL_PROVIDER,
     XAI_API_KEY: process.env.XAI_API_KEY,
@@ -59,6 +62,7 @@ export const env = createEnv({
     OPENROUTER_MODEL_AGENT: process.env.OPENROUTER_MODEL_AGENT,
     OPENROUTER_MODEL_RECOMMENDER: process.env.OPENROUTER_MODEL_RECOMMENDER,
     NEXT_PUBLIC_BASE_PATH: process.env.NEXT_PUBLIC_BASE_PATH,
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
   },
 
   emptyStringAsUndefined: true,

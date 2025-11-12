@@ -11,6 +11,13 @@ import {
   type RecommendedMovie,
 } from "@/features/movie-recommendation/schemas/sse-events";
 import { StatusCodes } from "http-status-codes";
+import { validateTurnstileToken } from "@/features/bot-verification/server-utils/validate-turnstile";
+import { env } from "@/env";
+import z from "zod";
+
+const TURNSTILE_ENABLED = !!env.TURNSTILE_SECRET_KEY;
+
+const encoder = new TextEncoder();
 
 function formatSSE(event: SSEEvent): string {
   // Validate the event before serialization
@@ -18,26 +25,91 @@ function formatSSE(event: SSEEvent): string {
   return `data: ${JSON.stringify(validatedEvent)}\n\n`;
 }
 
+function createResponseForSingleEvent(
+  event: SSEEvent,
+  statusCode: number = StatusCodes.OK,
+): Response {
+  const stream = new ReadableStream({
+    start(controller) {
+      const send = (event: SSEEvent) =>
+        controller.enqueue(encoder.encode(formatSSE(event)));
+
+      send(event);
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    status: statusCode,
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
+}
+
+const queryParamsSchema = z.object({
+  query: z.string().min(1, "Query parameter is required"),
+  turnstileToken: z
+    .string()
+    .optional()
+    .refine((token) => {
+      // If Turnstile is not enabled, any token is valid
+      if (!TURNSTILE_ENABLED) return true;
+
+      // If Turnstile is enabled, the token must be provided
+      return !!token;
+    }, "turnstileToken parameter is required"),
+});
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
-  const movieCriteria = searchParams.get("query");
+  const queryParamsParsed = queryParamsSchema.safeParse(
+    Object.fromEntries(searchParams),
+  );
 
-  if (!movieCriteria) {
-    return new Response(
-      JSON.stringify({ error: "Movie criteria query parameter is required" }),
+  if (!queryParamsParsed.success) {
+    return createResponseForSingleEvent(
       {
-        status: StatusCodes.BAD_REQUEST,
-        headers: { "Content-Type": "application/json" },
+        type: "error",
+        message: queryParamsParsed.error.issues
+          .map(({ message }) => message)
+          .join(", "),
       },
+      StatusCodes.BAD_REQUEST,
     );
   }
 
-  const encoder = new TextEncoder();
+  const { query: movieCriteria, turnstileToken } = queryParamsParsed.data;
+
+  if (TURNSTILE_ENABLED) {
+    if (!turnstileToken) {
+      return createResponseForSingleEvent(
+        {
+          type: "error",
+          message: "Turnstile token is required",
+        },
+        StatusCodes.BAD_REQUEST,
+      );
+    }
+
+    const validation = await validateTurnstileToken(turnstileToken);
+    if (!validation.success) {
+      return createResponseForSingleEvent(
+        {
+          type: "error",
+          message: validation.error || "Turnstile validation failed",
+        },
+        StatusCodes.UNAUTHORIZED,
+      );
+    }
+  }
+
   const stream = new ReadableStream({
     async start(controller) {
-      const send = (event: SSEEvent) => {
+      const send = (event: SSEEvent) =>
         controller.enqueue(encoder.encode(formatSSE(event)));
-      };
 
       try {
         // Build agent with event handlers
@@ -117,7 +189,7 @@ export async function GET(request: NextRequest) {
               posterUrl: movieDetails.poster_path ?? null,
               overview: movieDetails.overview ?? null,
               releaseYear: movieDetails.release_date.includes("-")
-                ? movieDetails.release_date.split("-")[0]
+                ? (movieDetails.release_date.split("-")?.at(0) ?? null)
                 : null,
             };
 

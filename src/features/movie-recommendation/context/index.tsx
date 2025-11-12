@@ -12,7 +12,7 @@ type MovieRecommendationsContextType = {
   query: string;
   isPending: boolean;
   progressMessage: string;
-  provideRecommendations: (query: string) => void;
+  provideRecommendations: (query: string, turnstileToken?: string) => void;
 };
 
 const MovieRecommendationsContext = createContext<
@@ -30,7 +30,10 @@ export function MovieRecommendationsProvider({
   const [progressMessage, setProgressMessage] = useState<string>("");
   const eventSourceRef = useRef<EventSource | null>(null);
 
-  const provideRecommendations = (newQuery: string) => {
+  const provideRecommendations = (
+    newQuery: string,
+    turnstileToken?: string,
+  ) => {
     // Close existing connection if any
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
@@ -41,7 +44,12 @@ export function MovieRecommendationsProvider({
     setIsPending(true);
     setProgressMessage("");
 
-    const url = `${env.NEXT_PUBLIC_BASE_PATH}api/recommend?${new URLSearchParams({ query: newQuery })}`;
+    const params = new URLSearchParams({ query: newQuery });
+    if (turnstileToken) {
+      params.set("turnstileToken", turnstileToken);
+    }
+
+    const url = `${env.NEXT_PUBLIC_BASE_PATH}api/recommend?${params}`;
     const eventSource = new EventSource(url);
     eventSourceRef.current = eventSource;
 
