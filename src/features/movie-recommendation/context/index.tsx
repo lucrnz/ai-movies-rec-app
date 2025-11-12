@@ -6,6 +6,8 @@ import {
   sseEventSchema,
   type RecommendedMovie,
 } from "@/features/movie-recommendation/schemas/sse-events";
+import toast from "react-hot-toast";
+import { AlertCircleIcon } from "lucide-react";
 
 type MovieRecommendationsContextType = {
   results: RecommendedMovie[];
@@ -53,11 +55,15 @@ export function MovieRecommendationsProvider({
     const eventSource = new EventSource(url);
     eventSourceRef.current = eventSource;
 
-    eventSource.onmessage = (event) => {
+    const notifyErrorToast = (message: string) => {
+      toast.error(message, {
+        icon: <AlertCircleIcon />,
+      });
+    };
+
+    eventSource.addEventListener("message", (event) => {
       try {
-        const parsedData: unknown = JSON.parse(event.data);
-        // Validate the incoming SSE event with Zod
-        const data = sseEventSchema.parse(parsedData);
+        const data = sseEventSchema.parse(JSON.parse(event.data));
 
         switch (data.type) {
           case "progress":
@@ -76,29 +82,41 @@ export function MovieRecommendationsProvider({
             break;
 
           case "error":
-            console.error("SSE Error:", data.message);
+            notifyErrorToast(data.message);
             setIsPending(false);
-            setProgressMessage(`Error: ${data.message}`);
+            eventSource.close();
+            eventSourceRef.current = null;
+            break;
+
+          case "captcha-error":
+            notifyErrorToast(data.message);
+            setIsPending(false);
+            setProgressMessage("");
             eventSource.close();
             eventSourceRef.current = null;
             break;
         }
-      } catch (error) {
-        console.error("Failed to parse or validate SSE message:", error);
+      } catch (error: unknown) {
+        console.error(error instanceof Error ? error.message : "Unknown error");
+
+        toast.error("Something went wrong. Please try again.", {
+          icon: <AlertCircleIcon />,
+        });
+
         setIsPending(false);
-        setProgressMessage("Error: Invalid data received from server");
         eventSource.close();
         eventSourceRef.current = null;
       }
-    };
+    });
 
-    eventSource.onerror = () => {
-      console.error("EventSource error");
+    eventSource.addEventListener("error", (event) => {
+      console.error("SSE connection error", event);
+      notifyErrorToast("Connection error occurred. Please try again.");
       setIsPending(false);
-      setProgressMessage("Connection error occurred");
       eventSource.close();
       eventSourceRef.current = null;
-    };
+      return;
+    });
   };
 
   return (

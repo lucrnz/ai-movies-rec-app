@@ -93,6 +93,17 @@ export const MovieRecommendationsSearch = () => {
     form.requestSubmit();
   };
 
+  const handleRetryVerification = () => {
+    if (pendingQueryRef.current && turnstile.isEnabled) {
+      turnstile.execute();
+    }
+  };
+
+  const shouldShowPopover =
+    turnstile.isEnabled &&
+    hasPendingQuery &&
+    (captchaIsVerifying || turnstile.hasError);
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -104,11 +115,28 @@ export const MovieRecommendationsSearch = () => {
     >
       <div className="md:w-96 lg:w-[500px] flex flex-row gap-2 items-center">
         <Popover
-          isOpen={captchaIsVerifying && hasPendingQuery}
+          isOpen={shouldShowPopover}
           content={
             <div className="bg-base-100 dark:bg-base-300 text-base-content dark:text-base-content px-3 py-2 rounded-lg shadow-lg text-sm border border-base-300 dark:border-base-200 flex flex-row items-center gap-2">
-              <LoaderCircleIcon className="animate-spin" />
-              We are verifying you are not a bot, please wait...
+              {turnstile.hasError ? (
+                <>
+                  <span>Verification failed. Please try again.</span>
+                  <button
+                    type="button"
+                    onClick={handleRetryVerification}
+                    className="btn btn-sm btn-primary"
+                  >
+                    Retry
+                  </button>
+                </>
+              ) : (
+                <>
+                  <LoaderCircleIcon className="animate-spin" />
+                  <span>
+                    We are verifying you are not a bot, please wait...
+                  </span>
+                </>
+              )}
             </div>
           }
           positions={["top"]}
@@ -155,6 +183,7 @@ export const MovieRecommendationsSearch = () => {
           }}
           onSuccess={turnstile.handleSuccess}
           onError={turnstile.handleError}
+          onExpire={turnstile.reset}
         />
       )}
 

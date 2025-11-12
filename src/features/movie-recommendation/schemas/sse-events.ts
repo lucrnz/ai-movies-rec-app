@@ -31,12 +31,18 @@ export const sseErrorEventSchema = z.object({
   message: z.string(),
 });
 
+export const sseCaptchaErrorEventSchema = z.object({
+  type: z.literal("captcha-error"),
+  message: z.string(),
+});
+
 // Discriminated union of all SSE events
 export const sseEventSchema = z.discriminatedUnion("type", [
   sseProgressEventSchema,
   sseMovieEventSchema,
   sseDoneEventSchema,
   sseErrorEventSchema,
+  sseCaptchaErrorEventSchema,
 ]);
 
 // Inferred TypeScript types
@@ -45,4 +51,5 @@ export type SSEProgressEvent = z.infer<typeof sseProgressEventSchema>;
 export type SSEMovieEvent = z.infer<typeof sseMovieEventSchema>;
 export type SSEDoneEvent = z.infer<typeof sseDoneEventSchema>;
 export type SSEErrorEvent = z.infer<typeof sseErrorEventSchema>;
+export type SSECaptchaErrorEvent = z.infer<typeof sseCaptchaErrorEventSchema>;
 export type SSEEvent = z.infer<typeof sseEventSchema>;

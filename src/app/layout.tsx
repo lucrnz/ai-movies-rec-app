@@ -4,6 +4,7 @@ import "@fontsource-variable/exo-2";
 import "@fontsource-variable/cabin";
 import { SITE_NAME, SITE_DESCRIPTION } from "@/features/site-consts";
 import { env } from "@/env";
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: {
@@ -26,7 +27,10 @@ export default function RootLayout({
       lang="en"
       className="font-body tracking-wide antialiased relative h-screen w-screen overflow-x-hidden"
     >
-      <body className="h-full w-full relative p-2 md:p-4">{children}</body>
+      <body className="h-full w-full relative p-2 md:p-4">
+        {children}
+        <Toaster position="top-center" />
+      </body>
     </html>
   );
 }

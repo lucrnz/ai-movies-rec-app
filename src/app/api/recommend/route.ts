@@ -25,10 +25,7 @@ function formatSSE(event: SSEEvent): string {
   return `data: ${JSON.stringify(validatedEvent)}\n\n`;
 }
 
-function createResponseForSingleEvent(
-  event: SSEEvent,
-  statusCode: number = StatusCodes.OK,
-): Response {
+function createResponseForSingleEvent(event: SSEEvent): Response {
   const stream = new ReadableStream({
     start(controller) {
       const send = (event: SSEEvent) =>
@@ -39,8 +36,9 @@ function createResponseForSingleEvent(
     },
   });
 
+  // Reason to always return OK - but what matters it the payload itself, because the SSE connection is technically OK.
   return new Response(stream, {
-    status: statusCode,
+    status: StatusCodes.OK,
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
@@ -70,39 +68,30 @@ export async function GET(request: NextRequest) {
   );
 
   if (!queryParamsParsed.success) {
-    return createResponseForSingleEvent(
-      {
-        type: "error",
-        message: queryParamsParsed.error.issues
-          .map(({ message }) => message)
-          .join(", "),
-      },
-      StatusCodes.BAD_REQUEST,
-    );
+    return createResponseForSingleEvent({
+      type: "error",
+      message: queryParamsParsed.error.issues
+        .map(({ message }) => message)
+        .join(", "),
+    });
   }
 
   const { query: movieCriteria, turnstileToken } = queryParamsParsed.data;
 
   if (TURNSTILE_ENABLED) {
     if (!turnstileToken) {
-      return createResponseForSingleEvent(
-        {
-          type: "error",
-          message: "Turnstile token is required",
-        },
-        StatusCodes.BAD_REQUEST,
-      );
+      return createResponseForSingleEvent({
+        type: "captcha-error",
+        message: "Captcha verification failed",
+      });
     }
 
     const validation = await validateTurnstileToken(turnstileToken);
     if (!validation.success) {
-      return createResponseForSingleEvent(
-        {
-          type: "error",
-          message: validation.error || "Turnstile validation failed",
-        },
-        StatusCodes.UNAUTHORIZED,
-      );
+      return createResponseForSingleEvent({
+        type: "captcha-error",
+        message: "Captcha verification failed",
+      });
     }
   }
 

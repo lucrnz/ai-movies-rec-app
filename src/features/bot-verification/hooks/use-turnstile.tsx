@@ -8,6 +8,7 @@ type UseTurnstileReturn = {
   isEnabled: boolean;
   isVerifying: boolean;
   isReady: boolean;
+  hasError: boolean;
   execute: () => void;
   reset: () => void;
   handleSuccess: (token: string) => void;
@@ -27,13 +28,15 @@ export function useTurnstile({
 }: UseTurnstileParams): UseTurnstileReturn {
   const [token, setToken] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
-  const isReady = !!token && !isVerifying;
+  const isReady = !!token && !isVerifying && !hasError;
 
   const execute = () => {
     if (!isEnabled || !turnstileRef.current || isReady) return;
 
     console.log("starting turnstile verification");
+    setHasError(false);
     setIsVerifying(true);
     turnstileRef.current.execute();
   };
@@ -43,6 +46,7 @@ export function useTurnstile({
     turnstileRef.current.reset();
     setToken(null);
     setIsVerifying(false);
+    setHasError(false);
   };
 
   const handleSuccess = async (token: string) => {
@@ -53,6 +57,7 @@ export function useTurnstile({
 
     setToken(token);
     setIsVerifying(false);
+    setHasError(false);
 
     // Invoke the callback if provided, passing reset function
     onReady?.(token, reset);
@@ -62,6 +67,9 @@ export function useTurnstile({
     console.error("turnstile verification failed");
     setToken(null);
     setIsVerifying(false);
+    setHasError(true);
+
+    turnstileRef.current?.reset();
   };
 
   return {
@@ -69,6 +77,7 @@ export function useTurnstile({
     isVerifying,
     isReady,
     isEnabled,
+    hasError,
     execute,
     reset,
     handleSuccess,
