@@ -40,66 +40,71 @@ export async function GET(request: NextRequest) {
       };
 
       try {
-        let agentResults: AgentResultItem[] = [];
-
-        let lastSearchMovieTitle = "";
-
         // Build agent with event handlers
-        const agent = buildMovieRecommendationAgent({
-          recommendedMoviesTotalTarget: 6,
-          eventHandler: {
-            tool_called: (toolName, params) => {
-              switch (toolName) {
-                case AGENT_TOOL_NAME.CONSULT_MOVIE_RECOMMENDATIONS:
-                  send({
-                    type: "progress",
-                    message: "Consulting an AI model for recommendations",
-                  });
-                  break;
-                case AGENT_TOOL_NAME.SEARCH_MOVIES:
-                  const movieName = params.query;
-                  lastSearchMovieTitle = movieName;
-                  send({
-                    type: "progress",
-                    message: `Searching for "${movieName}"...`,
-                  });
-                  break;
-                default:
-                  break;
-              }
-            },
-            tool_result: (toolName, result) => {
-              switch (toolName) {
-                case AGENT_TOOL_NAME.CONSULT_MOVIE_RECOMMENDATIONS:
-                  send({
-                    type: "progress",
-                    message: "Considering recommendations from AI model",
-                  });
-                  break;
-                case AGENT_TOOL_NAME.SEARCH_MOVIES:
-                  const typedResult = result as {
-                    success: boolean;
-                    results?: unknown[];
-                  };
-                  const count = typedResult.results?.length ?? 0;
-                  send({
-                    type: "progress",
-                    message: `Found ${count} results for "${lastSearchMovieTitle}"`,
-                  });
-                  break;
-                default:
-                  break;
-              }
-            },
-            agent_result: (result) => {
-              agentResults = result;
-            },
-          },
-        });
+        const agentResults: AgentResultItem[] = await new Promise<
+          AgentResultItem[]
+        >(async (resolve, reject) => {
+          let lastSearchMovieTitle = "";
+          try {
+            const agent = buildMovieRecommendationAgent({
+              recommendedMoviesTotalTarget: 6,
+              eventHandler: {
+                tool_called: (toolName, params) => {
+                  switch (toolName) {
+                    case AGENT_TOOL_NAME.CONSULT_MOVIE_RECOMMENDATIONS:
+                      send({
+                        type: "progress",
+                        message: "Consulting an AI model for recommendations",
+                      });
+                      break;
+                    case AGENT_TOOL_NAME.SEARCH_MOVIES:
+                      const movieName = params.query;
+                      lastSearchMovieTitle = movieName;
+                      send({
+                        type: "progress",
+                        message: `Searching for "${movieName}"...`,
+                      });
+                      break;
+                    default:
+                      break;
+                  }
+                },
+                tool_result: (toolName, result) => {
+                  switch (toolName) {
+                    case AGENT_TOOL_NAME.CONSULT_MOVIE_RECOMMENDATIONS:
+                      send({
+                        type: "progress",
+                        message: "Considering recommendations from AI model",
+                      });
+                      break;
+                    case AGENT_TOOL_NAME.SEARCH_MOVIES:
+                      const typedResult = result as {
+                        success: boolean;
+                        results?: unknown[];
+                      };
+                      const count = typedResult.results?.length ?? 0;
+                      send({
+                        type: "progress",
+                        message: `Found ${count} results for "${lastSearchMovieTitle}"`,
+                      });
+                      break;
+                    default:
+                      break;
+                  }
+                },
+                agent_result: (result) => {
+                  resolve(result);
+                },
+              },
+            });
 
-        // Run the agent
-        await agent.generate({
-          prompt: movieCriteria,
+            // Run the agent
+            await agent.generate({
+              prompt: movieCriteria,
+            });
+          } catch (error) {
+            reject(error);
+          }
         });
 
         // Fetch and stream movie details progressively
