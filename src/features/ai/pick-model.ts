@@ -51,9 +51,13 @@ const getAILanguageModelUsingOllamaProvider = (task: AIModelForTask) => {
 
   switch (task) {
     case AI_MODEL_FOR_TASK.AGENT:
-      return ollamaProvider.chat(env.OLLAMA_MODEL_AGENT);
+      return ollamaProvider.chat(env.OLLAMA_MODEL_AGENT, {
+        reasoning: true,
+      });
     case AI_MODEL_FOR_TASK.RECOMMENDER:
-      return ollamaProvider.chat(env.OLLAMA_MODEL_RECOMMENDER);
+      return ollamaProvider.chat(env.OLLAMA_MODEL_RECOMMENDER, {
+        reasoning: true,
+      });
     default:
       throw new Error(`Unknown task: ${task}`);
   }
