@@ -8,9 +8,7 @@ export const env = createEnv({
       .default("development"),
     TURNSTILE_SECRET_KEY: z.string().optional(),
     TMDB_API_KEY: z.string(),
-    AI_MODEL_PROVIDER: z
-      .enum(["openrouter", "xai", "ollama"])
-      .default("ollama"),
+    AI_MODEL_PROVIDER: z.enum(["openrouter", "xai", "ollama"]).default("xai"),
     XAI_API_KEY: z.string().optional(),
     XAI_MODEL_AGENT: z.string().default("grok-4-fast-non-reasoning"),
     XAI_MODEL_RECOMMENDER: z.string().default("grok-4"),

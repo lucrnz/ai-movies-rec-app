@@ -36,8 +36,8 @@ Create a `.env.local` file in the root directory with the following variables:
 TMDB_API_KEY=your_tmdb_api_key_here
 
 # AI Provider Selection (required)
-# Options: "openrouter", "xai", or "ollama" (default: "ollama")
-AI_MODEL_PROVIDER=ollama
+# Options: "openrouter", "xai", or "ollama" (default: "xai")
+AI_MODEL_PROVIDER=xai
 ```
 
 ### OpenRouter Configuration
