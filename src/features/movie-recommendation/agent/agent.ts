@@ -112,8 +112,12 @@ export const buildMovieRecommendationAgent = ({
 
   const consultMovieRecommendationsTool = tool({
     name: AGENT_TOOL_NAME.CONSULT_MOVIE_RECOMMENDATIONS,
-    description:
+    description: [
       "Consult movie recommendations based on natural language movie criteria.",
+      `${MAX_CONSULTATIONS_ALLOWED > 1 ? `Only call this tool more than once if it's absolutely necessary.` : "You can only call this tool once."}`,
+    ]
+      .join(" ")
+      .trim(),
     inputSchema: z.object({
       movieCriteria: z
         .string()
@@ -169,6 +173,8 @@ export const buildMovieRecommendationAgent = ({
           recommendationText,
         },
       );
+
+      console.log("[agent] recommendation text", recommendationText);
 
       return {
         success: true,
