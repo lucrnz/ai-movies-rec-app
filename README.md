@@ -69,13 +69,13 @@ If using Ollama as your AI provider (default):
 ```bash
 AI_MODEL_PROVIDER=ollama
 OLLAMA_URL=http://localhost:11434
-OLLAMA_MODEL_AGENT=gemma3:4b
+OLLAMA_MODEL_AGENT=qwen3:1.7b
 OLLAMA_MODEL_RECOMMENDER=gpt-oss:20b
 ```
 
 **Note**: For Ollama, ensure the models are installed locally:
 ```bash
-ollama pull gemma3:4b
+ollama pull qwen3:1.7b
 ollama pull gpt-oss:20b
 ```
 

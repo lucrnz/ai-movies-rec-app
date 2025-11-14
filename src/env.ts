@@ -18,7 +18,7 @@ export const env = createEnv({
     OPENROUTER_MODEL_AGENT: z.string().default("openai/gpt-5-nano"),
     OPENROUTER_MODEL_RECOMMENDER: z.string().default("openai/gpt-oss-120b"),
     OLLAMA_URL: z.string().default("http://localhost:11434"),
-    OLLAMA_MODEL_AGENT: z.string().default("gemma3:4b"),
+    OLLAMA_MODEL_AGENT: z.string().default("qwen3:1.7b"),
     OLLAMA_MODEL_RECOMMENDER: z.string().default("gpt-oss:20b"),
   },
 
